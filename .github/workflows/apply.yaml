@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+# Required if workflow pushes commits back to repository
+permissions:
+  contents: write
+
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -17,34 +21,44 @@ jobs:
     steps:
       # Step 1: Checkout repository code
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # Step 2: Install Terraform
       - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
 
       # Step 3: Initialize Terraform
       - name: Init
         run: terraform init
 
-      # Step 4: Generate and save execution plan
+      # Step 4: Validate Terraform configuration
+      - name: Validate
+        run: terraform validate
+
+      # Step 5: Generate and save execution plan
       - name: Plan (Re-run for Safety)
         run: terraform plan -out=tfplan
 
       # Save plan to a file so apply uses exactly
       # what was reviewed and planned
 
-      # Step 5: Apply infrastructure changes
+      # Step 6: Apply infrastructure changes
       - name: Apply
         run: terraform apply -auto-approve tfplan
 
-      # Step 6: Commit updated state file back to Git
+      # Step 7: Commit updated state file back to Git
       - name: Commit Updated State Back to Git
         run: |
           git config user.email "ci@github-actions"
           git config user.name "GitHub Actions"
 
-          git add terraform.tfstate
+          if [ -f terraform.tfstate ]; then
+            git add terraform.tfstate
 
-          git diff --staged --quiet || \
-          git commit -m "ci: update terraform state after apply [skip ci]"
+            git diff --staged --quiet || \
+            git commit -m "ci: update terraform state after apply [skip ci]"
 
-          git push
+            git push
+          fi

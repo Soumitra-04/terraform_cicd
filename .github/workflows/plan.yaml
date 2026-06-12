@@ -16,10 +16,14 @@ jobs:
 
     steps:
       # Step 1: Checkout repository code
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       # Step 2: Install Terraform
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
 
       # Step 3: Initialize Terraform
       - name: Terraform Init
@@ -57,9 +61,9 @@ jobs:
               repo: context.repo.repo,
               body: `### ${icon} Terraform Plan
 
-\`\`\`
-${plan.slice(0, 65000)}
-\`\`\``
+            \`\`\`
+            ${plan.slice(0, 65000)}
+            \`\`\``
             });
 
       # Step 6: Fail workflow if plan failed

@@ -16,10 +16,12 @@ jobs:
 
     steps:
       # Step 1: Checkout repository code
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       # Step 2: Install Terraform
-      - uses: hashicorp/setup-terraform@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
 
@@ -43,8 +45,12 @@ jobs:
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
 
-      # Step 6: Run TFLint
+      # Step 6: Initialize TFLint plugins
+      - name: Initialize TFLint
+        run: tflint --init
+
+      # Required if using .tflint.hcl with provider-specific rules
+
+      # Step 7: Run TFLint
       - name: Run TFLint
-        run: |
-          tflint --init
-          tflint --recursive
+        run: tflint --recursive
